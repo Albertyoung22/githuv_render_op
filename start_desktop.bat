@@ -8,3 +8,4 @@ echo   語音引擎: Microsoft Edge-TTS
 echo ========================================================
 python desktop_app.py
 pause
+
