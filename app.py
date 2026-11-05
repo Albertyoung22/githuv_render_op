@@ -1,4 +1,5 @@
 import os
+import socket
 import asyncio
 from flask import Flask, request, Response, jsonify, send_from_directory
 from waitress import serve
@@ -11,8 +12,20 @@ except ImportError:
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
-# In-memory cache for audio snippets to guarantee sub-second response
+# In-memory cache for audio snippets
 TTS_CACHE = {}
+
+def get_lan_ip():
+    """Detect local network LAN IP address"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 @app.route('/')
 def index():
@@ -20,12 +33,27 @@ def index():
 
 @app.route('/api/status')
 def status():
+    port = int(os.environ.get('PORT', 10000))
+    lan_ip = get_lan_ip()
     return jsonify({
         "status": "online",
         "framework": "Flask",
         "wsgi_server": "Waitress",
         "edge_tts": HAS_EDGE_TTS,
-        "port": int(os.environ.get('PORT', 10000))
+        "port": port,
+        "localhost_url": f"http://127.0.0.1:{port}",
+        "lan_url": f"http://{lan_ip}:{port}"
+    })
+
+@app.route('/api/info')
+def info():
+    port = int(os.environ.get('PORT', 10000))
+    lan_ip = get_lan_ip()
+    return jsonify({
+        "lan_ip": lan_ip,
+        "port": port,
+        "localhost_url": f"http://127.0.0.1:{port}",
+        "lan_url": f"http://{lan_ip}:{port}"
     })
 
 @app.route('/api/tts')
@@ -52,7 +80,6 @@ def tts():
                         chunks.append(chunk['data'])
                 return b''.join(chunks)
 
-            # Generate audio in a dedicated event loop
             audio_data = asyncio.run(generate_speech())
             TTS_CACHE[cache_key] = audio_data
         except Exception as e:
@@ -69,9 +96,11 @@ def tts():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
-    print(f"==================================================")
-    print(f"🚀 Starting Flask Web App on Waitress WSGI Server")
-    print(f"📡 Host: 0.0.0.0 | Port: {port}")
-    print(f"🎙️ Microsoft Edge-TTS: {'Enabled' if HAS_EDGE_TTS else 'Disabled'}")
-    print(f"==================================================")
+    lan_ip = get_lan_ip()
+    print("=" * 60)
+    print("🚀 Starting Flask Web App on Waitress WSGI Server")
+    print(f"📡 Localhost URL: http://127.0.0.1:{port}")
+    print(f"🌐 LAN Local IP:  http://{lan_ip}:{port}")
+    print(f"🎙️ Edge-TTS:      {'Enabled' if HAS_EDGE_TTS else 'Disabled'}")
+    print("=" * 60)
     serve(app, host='0.0.0.0', port=port, threads=6)

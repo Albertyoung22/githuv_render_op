@@ -100,6 +100,12 @@
 
       <!-- Navigation Tabs & Theme Toggle -->
       <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Local IP Pill -->
+        <div id="lanIpPill" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-slate-500 dark:text-slate-400">本機 IP:</span>
+          <a id="lanIpLink" href="#" target="_blank" class="text-indigo-600 dark:text-cyan-400 font-bold hover:underline" title="點擊在預設瀏覽器開啟本機區網網址">127.0.0.1:10000</a>
+        </div>
         <nav class="hidden lg:flex items-center space-x-1 text-sm font-medium">
           <button onclick="scrollToSection('workflow')" class="px-2.5 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition">五大步驟</button>
           <button onclick="scrollToSection('terminal-sim')" class="px-2.5 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition">Git 終端模擬</button>
@@ -1507,6 +1513,22 @@ if __name__ == '__main__':
         }, item.t);
       });
     }
+
+    // Automatically detect and update LAN IP Pill
+    fetch('/api/info')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.lan_url) {
+          const pill = document.getElementById('lanIpPill');
+          const link = document.getElementById('lanIpLink');
+          if (pill && link) {
+            pill.classList.remove('hidden');
+            link.href = data.lan_url;
+            link.innerText = `${data.lan_ip}:${data.port}`;
+          }
+        }
+      })
+      .catch(() => {});
   </script>
 </body>
 </html>
