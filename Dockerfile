@@ -1,10 +1,15 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
 COPY . .
 
 ENV PORT=10000
 EXPOSE 10000
 
-CMD ["sh", "-c", "python3 -m http.server ${PORT:-10000}"]
+CMD ["python", "server.py"]
