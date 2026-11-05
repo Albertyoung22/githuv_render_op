@@ -206,14 +206,20 @@ class DesktopControlApp(ctk.CTk):
 
         # Generate QR Code image
         if HAS_QR:
-            qr = qrcode.QRCode(box_size=4, border=2)
-            qr.add_data(self.lan_url)
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
-            self.qr_photo = ctk.CTkImage(light_image=img, dark_image=img, size=(160, 160))
-            
-            qr_label = ctk.CTkLabel(right_frame, image=self.qr_photo, text="")
-            qr_label.pack(pady=6)
+            try:
+                qr = qrcode.QRCode(box_size=4, border=2)
+                qr.add_data(self.lan_url)
+                qr.make(fit=True)
+                qr_raw = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
+                pil_img = qr_raw.get_image().convert("RGB")
+                self.qr_photo = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(160, 160))
+                
+                qr_label = ctk.CTkLabel(right_frame, image=self.qr_photo, text="")
+                qr_label.pack(pady=6)
+            except Exception as e:
+                print(f"[Warning] Failed to generate QR code: {e}")
+                qr_label = ctk.CTkLabel(right_frame, text="[QR 產生失敗]", text_color="#94a3b8")
+                qr_label.pack(pady=40)
         else:
             qr_label = ctk.CTkLabel(right_frame, text="[QR Code 模組載入中]", text_color="#94a3b8")
             qr_label.pack(pady=40)
@@ -275,3 +281,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
