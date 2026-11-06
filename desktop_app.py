@@ -54,6 +54,14 @@ class DesktopControlApp(ctk.CTk):
         self.geometry("980x700")
         self.minsize(880, 620)
 
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(__file__), "logo.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except Exception:
+                pass
+
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -76,13 +84,27 @@ class DesktopControlApp(ctk.CTk):
         top_frame = ctk.CTkFrame(self, corner_radius=12, fg_color="#1e1b4b", border_width=1, border_color="#4338ca")
         top_frame.grid(row=0, column=0, columnspan=2, padx=20, pady=(15, 12), sticky="ew")
 
+        # Top Banner Logo & Title
+        title_box = ctk.CTkFrame(top_frame, fg_color="transparent")
+        title_box.pack(side="left", padx=16, pady=10)
+
+        logo_png_path = os.path.join(os.path.dirname(__file__), "logo.png")
+        if os.path.exists(logo_png_path):
+            try:
+                pil_logo = Image.open(logo_png_path).convert("RGB")
+                self.logo_ctk = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(38, 38))
+                logo_lbl = ctk.CTkLabel(title_box, image=self.logo_ctk, text="")
+                logo_lbl.pack(side="left", padx=(0, 10))
+            except Exception:
+                pass
+
         title_lbl = ctk.CTkLabel(
-            top_frame,
-            text="🚀 GitHub & Render 部署教學 — 桌面應用程式",
+            title_box,
+            text="GitHub & Render 部署教學 — 桌面應用程式",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color="#ffffff"
         )
-        title_lbl.pack(side="left", padx=20, pady=14)
+        title_lbl.pack(side="left")
 
         status_pill = ctk.CTkLabel(
             top_frame,
